@@ -28,6 +28,11 @@ events = []
 def schedule_event(time, event_type, entity_id=None):
     heapq.heappush(events, (time, event_type, entity_id))
 
+def minutes_to_hhmm(minutes):
+    hours = minutes // 60
+    mins = minutes % 60
+    return f"{hours:02}:{mins:02}"
+
 # Schedule the first bus and passenger arrivals
 for i in range(0, SIMULATION_TIME, BUS_INTERVAL):
     schedule_event(i, 'bus_arrival', entity_id=i // BUS_INTERVAL + 1)
@@ -72,6 +77,7 @@ while events:
             # Record individual passenger times
             passenger_times.append({
                 'passenger_id': passenger_id,
+                'arrival_time': arrival_time,
                 'waiting_time': waiting_time,
                 'travel_time': TRAVEL_TIME,
                 'total_time': waiting_time + TRAVEL_TIME,
@@ -81,6 +87,7 @@ while events:
             
             bus_info[-1]['passengers'].append({
                 'passenger_id': passenger_id,
+                'arrival_time': arrival_time,
                 'waiting_time': waiting_time,
                 'travel_time': TRAVEL_TIME,
                 'total_time': waiting_time + TRAVEL_TIME,
@@ -101,14 +108,25 @@ maximum_queue_size = max(queue_sizes) if queue_sizes else 0
 # Print individual passenger times
 print("Passenger times (waiting and travel):")
 for pt in passenger_times:
-    print(f"Passenger {pt['passenger_id']}: Waiting Time = {pt['waiting_time']:.2f} mins, Travel Time = {pt['travel_time']:.2f} mins, Total Time = {pt['total_time']:.2f} mins, Entered Bus {pt['bus_id']} at {pt['board_time']} mins")
+    arrival_time_hhmm = minutes_to_hhmm(pt['arrival_time'])
+    waiting_time_hhmm = minutes_to_hhmm(pt['waiting_time'])
+    travel_time_hhmm = minutes_to_hhmm(pt['travel_time'])
+    total_time_hhmm = minutes_to_hhmm(pt['total_time'])
+    board_time_hhmm = minutes_to_hhmm(pt['board_time'])
+    print(f"Passenger {pt['passenger_id']}: Arrival Time = {arrival_time_hhmm}, Waiting Time = {waiting_time_hhmm}, Travel Time = {travel_time_hhmm}, Total Time = {total_time_hhmm}, Entered Bus {pt['bus_id']} at {board_time_hhmm}")
 
 # Print bus information
 print("\nBus Information:")
 for bus in bus_info:
-    print(f"Bus {bus['bus_id']} arrived at {bus['arrival_time']} mins")
+    bus_arrival_hhmm = minutes_to_hhmm(bus['arrival_time'])
+    print(f"Bus {bus['bus_id']} arrived at {bus_arrival_hhmm}")
     for passenger in bus['passengers']:
-        print(f"  Passenger {passenger['passenger_id']}: Waiting Time = {passenger['waiting_time']:.2f} mins, Travel Time = {passenger['travel_time']:.2f} mins, Total Time = {passenger['total_time']:.2f} mins, Entered Bus {passenger['bus_id']} at {passenger['board_time']} mins")
+        arrival_time_hhmm = minutes_to_hhmm(passenger['arrival_time'])
+        waiting_time_hhmm = minutes_to_hhmm(passenger['waiting_time'])
+        travel_time_hhmm = minutes_to_hhmm(passenger['travel_time'])
+        total_time_hhmm = minutes_to_hhmm(passenger['total_time'])
+        board_time_hhmm = minutes_to_hhmm(passenger['board_time'])
+        print(f"  Passenger {passenger['passenger_id']}: Arrival Time = {arrival_time_hhmm}, Waiting Time = {waiting_time_hhmm}, Travel Time = {travel_time_hhmm}, Total Time = {total_time_hhmm}, Entered Bus {passenger['bus_id']} at {board_time_hhmm}")
 
 # Print overall results
 print("\nSimulation run time:", current_time)
