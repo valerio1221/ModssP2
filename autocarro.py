@@ -1,13 +1,13 @@
 import random
 import heapq
 
-# Constants
-BUS_INTERVAL = 15  # Time interval between buses in minutes
-NORMAL_TRAVEL_TIME = 20  # Normal travel time for a route in minutes
-TRAFFIC_TRAVEL_TIME = 30  # Travel time during traffic hours in minutes
-SIMULATION_TIME = 1440  # Total simulation time in minutes (1 day)
-PASSENGER_ARRIVAL_MIN = 1
-PASSENGER_ARRIVAL_MAX = 5
+# Prompt user for constants
+BUS_INTERVAL = int(input("Enter the time interval between buses in minutes: "))
+NORMAL_TRAVEL_TIME = int(input("Enter the normal travel time for a route in minutes: "))
+TRAFFIC_TRAVEL_TIME = int(input("Enter the travel time during traffic hours in minutes: "))
+SIMULATION_TIME = int(input("Enter the total simulation time in minutes (1 day): "))
+PASSENGER_ARRIVAL_MIN = int(input("Enter the minimum passenger arrival interval in minutes: "))
+PASSENGER_ARRIVAL_MAX = int(input("Enter the maximum passenger arrival interval in minutes: "))
 
 # Traffic hour constants
 TRAFFIC_HOURS = [(7 * 60, 9 * 60), (17 * 60, 19 * 60)]  # Traffic hours in minutes
@@ -47,8 +47,11 @@ def get_travel_time(current_time):
     return TRAFFIC_TRAVEL_TIME if is_traffic_hour(current_time) else NORMAL_TRAVEL_TIME
 
 # Schedule the first bus and passenger arrivals
-for i in range(0, SIMULATION_TIME, BUS_INTERVAL):
-    schedule_event(i, 'bus_arrival', entity_id=i // BUS_INTERVAL + 1)
+start_time = 6 * 60  # 6:00 AM in minutes
+end_time = 21 * 60  # 9:00 PM in minutes
+
+for i in range(start_time, end_time, BUS_INTERVAL):
+    schedule_event(i, 'bus_arrival', entity_id=(i - start_time) // BUS_INTERVAL + 1)
 schedule_event(next_passenger_arrival, 'passenger_arrival')
 
 while events:
@@ -108,11 +111,6 @@ while events:
                 'bus_id': entity_id,
                 'board_time': current_time
             })
-
-        # Schedule next bus arrival
-        next_bus_arrival = current_time + BUS_INTERVAL
-        if next_bus_arrival < SIMULATION_TIME:
-            schedule_event(next_bus_arrival, 'bus_arrival', entity_id=entity_id + 1)
 
 # Calculate metrics
 average_waiting_time = total_waiting_time / total_passengers_served if total_passengers_served else 0
