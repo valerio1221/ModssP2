@@ -54,7 +54,7 @@ def get_travel_time(current_time):
 
 # Schedule the first bus and passenger arrivals
 start_time = 6 * 60  # 6:00 AM in minutes
-end_time = 21 * 60  # 9:00 PM in minutes
+end_time = 23 * 60  # 23:00 PM in minutes
 
 for i in range(start_time, end_time, BUS_INTERVAL):
     schedule_event(i, 'bus_arrival', entity_id=(i - start_time) // BUS_INTERVAL + 1, stop_id=0)
