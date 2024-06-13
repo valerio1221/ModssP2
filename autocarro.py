@@ -11,7 +11,7 @@ SIMULATION_TIME = int(input("Enter the total simulation time in minutes (1 day):
 MEAN_PASSENGER_ARRIVAL = float(input("Enter the mean passenger arrival interval in minutes: "))  # Mean interval between passenger arrivals in minutes
 STD_PASSENGER_ARRIVAL = float(input("Enter the standard deviation for passenger arrival interval in minutes: "))  # Standard deviation for passenger arrival interval in minutes
 BUS_CAPACITY = int(input("Enter the bus capacity: "))  # Bus capacity (number of passengers a bus can hold)
-MEAN_LATE_EARLY = float(input("Enter the mean deviation for bus arrival (negative for early, positive for late) in minutes: "))  # Mean deviation for bus arrival in minutes
+MEAN_LATE_EARLY = float(input("Enter the mean deviation for bus arrival in minutes: "))  # Mean deviation for bus arrival in minutes
 STD_LATE_EARLY = float(input("Enter the standard deviation for bus arrival deviation in minutes: "))  # Standard deviation for bus arrival deviation in minutes
 
 # Traffic hour constants
