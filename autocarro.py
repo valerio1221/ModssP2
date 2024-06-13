@@ -1,72 +1,77 @@
-import heapq
-import random
-import numpy as np
-import matplotlib.pyplot as plt
+import heapq  # Import the heapq module for priority queue operations
+import random  # Import the random module for generating random numbers
+import numpy as np  # Import the numpy module for numerical operations
+import matplotlib.pyplot as plt  # Import the matplotlib module for plotting
 
 # Prompt user for constants
-BUS_INTERVAL = int(input("Enter the time interval between buses in minutes: "))
-NORMAL_TRAVEL_TIME = int(input("Enter the normal travel time for a route in minutes: "))
-TRAFFIC_TRAVEL_TIME = int(input("Enter the travel time during traffic hours in minutes: "))
-SIMULATION_TIME = int(input("Enter the total simulation time in minutes (1 day): "))
-MEAN_PASSENGER_ARRIVAL = float(input("Enter the mean passenger arrival interval in minutes: "))
-STD_PASSENGER_ARRIVAL = float(input("Enter the standard deviation for passenger arrival interval in minutes: "))
-BUS_CAPACITY = int(input("Enter the bus capacity: "))
-MEAN_LATE_EARLY = float(input("Enter the mean deviation for bus arrival in minutes: "))
-STD_LATE_EARLY = float(input("Enter the standard deviation for bus arrival deviation in minutes: "))
+BUS_INTERVAL = int(input("Enter the time interval between buses in minutes: "))  # Time interval between buses in minutes
+NORMAL_TRAVEL_TIME = int(input("Enter the normal travel time for a route in minutes: "))  # Normal travel time in minutes
+TRAFFIC_TRAVEL_TIME = int(input("Enter the travel time during traffic hours in minutes: "))  # Travel time during traffic hours in minutes
+SIMULATION_TIME = int(input("Enter the total simulation time in minutes (1 day): "))  # Total simulation time in minutes
+MEAN_PASSENGER_ARRIVAL = float(input("Enter the mean passenger arrival interval in minutes: "))  # Mean interval between passenger arrivals in minutes
+STD_PASSENGER_ARRIVAL = float(input("Enter the standard deviation for passenger arrival interval in minutes: "))  # Standard deviation for passenger arrival interval in minutes
+BUS_CAPACITY = int(input("Enter the bus capacity: "))  # Bus capacity (number of passengers a bus can hold)
+MEAN_LATE_EARLY = float(input("Enter the mean deviation for bus arrival (negative for early, positive for late) in minutes: "))  # Mean deviation for bus arrival in minutes
+STD_LATE_EARLY = float(input("Enter the standard deviation for bus arrival deviation in minutes: "))  # Standard deviation for bus arrival deviation in minutes
 
 # Traffic hour constants
-TRAFFIC_HOURS = [(7 * 60, 9 * 60), (17 * 60, 19 * 60)]  # Traffic hours in minutes
+TRAFFIC_HOURS = [(7 * 60, 9 * 60), (17 * 60, 19 * 60)]  # Traffic hours represented as tuples of start and end times in minutes
 
 # Bus stop constants
-NUM_BUS_STOPS = 5
-MEAN_STOP_INTERVAL = 10
-STD_STOP_INTERVAL = 3
+NUM_BUS_STOPS = 5  # Number of bus stops
+MEAN_STOP_INTERVAL = 10  # Mean time interval between bus stops in minutes
+STD_STOP_INTERVAL = 3  # Standard deviation for the time interval between bus stops in minutes
 
 # Metrics
-total_waiting_time = 0
-total_passengers_served = 0
-total_travel_time = 0
-queue_sizes = []
-waiting_times = []
-bus_arrival_deviations = []
+total_waiting_time = 0  # Total waiting time for all passengers
+total_passengers_served = 0  # Total number of passengers served
+total_travel_time = 0  # Total travel time for all passengers
+queue_sizes = []  # List to store the sizes of the passenger queues at different times
+waiting_times = []  # List to store the waiting times of passengers
+bus_arrival_deviations = []  # List to store the deviations of bus arrivals from the schedule
 
 # Queue and server state
-passenger_queue = [[] for _ in range(NUM_BUS_STOPS)]
-passenger_times = []
-buses = []
-current_time = 0
-next_passenger_id = 1
-next_passenger_arrival = int(np.random.exponential(MEAN_PASSENGER_ARRIVAL))
+passenger_queue = [[] for _ in range(NUM_BUS_STOPS)]  # List of passenger queues for each bus stop
+passenger_times = []  # List to store passenger times (arrival, waiting, travel, total)
+buses = []  # List to store information about each bus
+current_time = 0  # Initialize current simulation time
+next_passenger_id = 1  # Initialize the ID for the next passenger
+next_passenger_arrival = int(np.random.exponential(MEAN_PASSENGER_ARRIVAL))  # Time for the next passenger arrival based on an exponential distribution
 
 # Event priority queue (min-heap)
-events = []
+events = []  # Initialize an empty list to store events
 
+# Function to schedule events
 def schedule_event(time, event_type, entity_id=None, stop_id=None):
-    heapq.heappush(events, (time, event_type, entity_id, stop_id))
+    heapq.heappush(events, (time, event_type, entity_id, stop_id))  # Add an event to the priority queue
 
+# Function to convert minutes to HH:MM format
 def minutes_to_hhmm(minutes):
     hours = minutes // 60
     mins = minutes % 60
     return f"{hours:02}:{mins:02}"
 
+# Function to check if the current time is within traffic hours
 def is_traffic_hour(current_time):
     for start, end in TRAFFIC_HOURS:
         if start <= current_time % 1440 < end:
             return True
     return False
 
+# Function to get travel time based on current time
 def get_travel_time(current_time):
     return TRAFFIC_TRAVEL_TIME if is_traffic_hour(current_time) else NORMAL_TRAVEL_TIME
 
 # Schedule the first bus and passenger arrivals
 start_time = 6 * 60  # 6:00 AM in minutes
-end_time = 23 * 60  # 23:00 PM in minutes
+end_time = 23 * 60  # 11:00 PM in minutes
 
+# Schedule bus arrivals
 for i in range(start_time, end_time, BUS_INTERVAL):
-    schedule_event(i, 'bus_arrival', entity_id=(
-i - start_time) // BUS_INTERVAL + 1, stop_id=0)
-schedule_event(next_passenger_arrival, 'passenger_arrival')
+    schedule_event(i, 'bus_arrival', entity_id=(i - start_time) // BUS_INTERVAL + 1, stop_id=0)
+schedule_event(next_passenger_arrival, 'passenger_arrival')  # Schedule the first passenger arrival
 
+# Simulation loop
 while events:
     # Get the next event
     current_time, event_type, entity_id, stop_id = heapq.heappop(events)
@@ -76,20 +81,20 @@ while events:
 
     if event_type == 'passenger_arrival':
         # Handle passenger arrival
-        stop_id = random.randint(0, NUM_BUS_STOPS - 2)  # Random stop where the passenger arrives (not the last stop)
-        passenger_queue[stop_id].append((current_time, next_passenger_id))
-        queue_sizes.append((current_time, len(passenger_queue[stop_id])))
-        next_passenger_id += 1
-        next_passenger_arrival = current_time + int(np.random.exponential(MEAN_PASSENGER_ARRIVAL))
+        stop_id = random.randint(0, NUM_BUS_STOPS - 2)  # Randomly select a stop where the passenger arrives (not the last stop)
+        passenger_queue[stop_id].append((current_time, next_passenger_id))  # Add passenger to the queue at the selected stop
+        queue_sizes.append((current_time, len(passenger_queue[stop_id])))  # Record the queue size
+        next_passenger_id += 1  # Increment the next passenger ID
+        next_passenger_arrival = current_time + int(np.random.exponential(MEAN_PASSENGER_ARRIVAL))  # Schedule the next passenger arrival
         if next_passenger_arrival < SIMULATION_TIME:
             schedule_event(next_passenger_arrival, 'passenger_arrival')
         
     elif event_type == 'bus_arrival':
         # Handle bus arrival
-        bus_arrival_time = current_time + int(np.random.normal(MEAN_LATE_EARLY, STD_LATE_EARLY))
-        bus_arrival_deviations.append(bus_arrival_time - current_time)
-        travel_time = get_travel_time(current_time)
-        bus_capacity_remaining = BUS_CAPACITY
+        bus_arrival_time = current_time + int(np.random.normal(MEAN_LATE_EARLY, STD_LATE_EARLY))  # Calculate the bus arrival time with deviation
+        bus_arrival_deviations.append(bus_arrival_time - current_time)  # Record the deviation
+        travel_time = get_travel_time(current_time)  # Get the travel time based on the current time
+        bus_capacity_remaining = BUS_CAPACITY  # Initialize the remaining capacity of the bus
 
         # Initialize bus information for each bus separately
         if entity_id > len(buses):
